@@ -6,14 +6,14 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-@Document(indexName = "surffy_eum_log")
+@Document(indexName = "my_index")
 @Getter
 public class ElasticModel {
 
     @Id
     private String id;
+
     @Field(type = FieldType.Text)
     private String name;
-
 
 }

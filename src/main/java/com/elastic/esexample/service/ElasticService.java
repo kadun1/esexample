@@ -20,7 +20,9 @@ public class ElasticService {
     private final WebInfoRepository webInfoRepository;
 
     public void findValue() {
-        List<ElasticModel> kadun = elasticRepository.findByName("kadun");
+        List<ElasticModel> model = elasticRepository.findByName("kadun");
+        System.out.println("ID = " + model.get(0).getId());
+        System.out.println("Name = " + model.get(0).getName());
     }
 
     public void findWebInfo() {

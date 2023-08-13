@@ -17,7 +17,7 @@ public class ElasticController {
 
     @GetMapping("/get")
     public String elasticGet() {
-//        elasticService.findValue();
+        elasticService.findValue();
         elasticService.findWebInfo();
         return "ok";
     }

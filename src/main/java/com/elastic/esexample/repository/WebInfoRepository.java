@@ -10,4 +10,7 @@ public interface WebInfoRepository extends ElasticsearchRepository<WebInfo, Stri
 
     @Query("{\"range\" : {\"ts\" : {\"from\" : \"?0\", \"to\" : \"?1\"}}}")
     List<WebInfo> findByTs(Long start, Long end);
+
+    @Query("{\"}")
+    WebInfo findGroup();
 }

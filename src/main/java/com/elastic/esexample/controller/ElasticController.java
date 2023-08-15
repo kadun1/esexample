@@ -18,7 +18,8 @@ public class ElasticController {
     @GetMapping("/get")
     public String elasticGet() {
         elasticService.findValue();
-        elasticService.findWebInfo();
+        elasticService.findWebInfoByQuery();
+        elasticService.findWebInfoByCriteria();
         return "ok";
     }
 }

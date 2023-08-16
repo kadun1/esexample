@@ -20,6 +20,7 @@ public class ElasticController {
         elasticService.findValue();
         elasticService.findWebInfoByQuery();
         elasticService.findWebInfoByCriteria();
+        elasticService.aggregateWebInfo();
         return "ok";
     }
 }

@@ -21,6 +21,8 @@ public class ElasticController {
         elasticService.findWebInfoByQuery();
         elasticService.findWebInfoByCriteria();
         elasticService.aggregateWebInfo();
+//        elasticService.okHttpRequest();
+        elasticService.webClientRequest();
         return "ok";
     }
 }

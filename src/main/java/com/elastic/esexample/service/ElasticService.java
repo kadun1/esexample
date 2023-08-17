@@ -1,29 +1,41 @@
 package com.elastic.esexample.service;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
-import co.elastic.clients.elasticsearch._types.aggregations.AggregationBuilders;
-import co.elastic.clients.elasticsearch._types.aggregations.SumAggregation;
-import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
-import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
-import co.elastic.clients.elasticsearch.sql.QueryRequest;
-import co.elastic.clients.elasticsearch.sql.QueryResponse;
 import com.elastic.esexample.model.ElasticModel;
 import com.elastic.esexample.model.WebInfo;
 import com.elastic.esexample.repository.ElasticRepository;
 import com.elastic.esexample.repository.WebInfoRepository;
+import io.netty.channel.ChannelOption;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.client.Request;
-import org.elasticsearch.client.RestClient;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.query.*;
+import org.springframework.data.elasticsearch.core.query.Criteria;
+import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
+import org.springframework.data.elasticsearch.core.query.Query;
+import org.springframework.data.elasticsearch.core.query.StringQuery;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
+import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -34,6 +46,13 @@ public class ElasticService {
     private final WebInfoRepository webInfoRepository;
     private final ElasticsearchOperations elasticsearchOperations;
 
+    private OkHttpClient okHttpClient = new OkHttpClient();
+
+    private final String url = "http://localhost:9200/_sql?format=json&filter_path=rows";
+
+    private final String json = """
+            {"query": "select sum(count) from surffy_eum_web_info group by os"}
+            """;
 
     public void findValue() {
         List<ElasticModel> model = elasticRepository.findByName("kadun");
@@ -88,6 +107,35 @@ public class ElasticService {
     public void aggregateByStringQuery() {
         Query query = new StringQuery("{}");
         SearchHits<WebInfo> search = elasticsearchOperations.search(query, WebInfo.class);
+    }
+
+    public void okHttpRequest() {
+        RequestBody requestBody = RequestBody.create(json, okhttp3.MediaType.get("JSON"));
+        Request request = new Request.Builder()
+                .url(url)
+                .post(requestBody)
+                .build();
+        try (Response response = okHttpClient.newCall(request).execute()) {
+            System.out.println(response.body().string());
+        } catch (IOException e) {
+            log.error("IOException 발생");
+        }
+    }
+
+    public void webClientRequest() {
+
+        Mono<String> value = WebClient.create().post()
+                .uri(url)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(json), String.class)
+                .retrieve()
+                .bodyToMono(String.class)
+                .timeout(Duration.ofMillis(3000));
+
+        value.subscribe(v -> {
+            log.info("value = {}", v);
+        });
 
     }
 

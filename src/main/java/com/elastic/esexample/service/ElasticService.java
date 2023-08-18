@@ -33,6 +33,7 @@ import reactor.netty.http.client.HttpClient;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -42,66 +43,68 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class ElasticService {
 
-    private final ElasticRepository elasticRepository;
-    private final WebInfoRepository webInfoRepository;
+//    private final ElasticRepository elasticRepository;
+//    private final WebInfoRepository webInfoRepository;
     private final ElasticsearchOperations elasticsearchOperations;
 
     private OkHttpClient okHttpClient = new OkHttpClient();
+    private String auth = "admin" + ":" + "admin";
+    private String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
 
-    private final String url = "http://localhost:9200/_sql?format=json&filter_path=rows";
+    private final String url = "http://localhost:9200/_plugins/_sql";
 
     private final String json = """
-            {"query": "select sum(count) from surffy_eum_web_info group by os"}
+            {"query": "select sum(pt) from surffy_eum_web_info group by os"}
             """;
 
     public void findValue() {
-        List<ElasticModel> model = elasticRepository.findByName("kadun");
-        System.out.println("ID = " + model.get(0).getId());
-        System.out.println("Name = " + model.get(0).getName());
+//        List<ElasticModel> model = elasticRepository.findByName("kadun");
+//        System.out.println("ID = " + model.get(0).getId());
+//        System.out.println("Name = " + model.get(0).getName());
     }
 
     public void findWebInfoByQuery() {
-        List<WebInfo> byTs = webInfoRepository.findByTs(Instant.now().getEpochSecond() - 3600L, Instant.now().getEpochSecond());
-        for (WebInfo info : byTs) {
-            log.info("info.getTs() = {}", info.getTs());
-            log.info("info.getMainDomain() = {}", info.getMainDomain());
-        }
+//        List<WebInfo> byTs = webInfoRepository.findByTs(Instant.now().getEpochSecond() - 3600L, Instant.now().getEpochSecond());
+//        for (WebInfo info : byTs) {
+//            log.info("info.getTs() = {}", info.getTs());
+//            log.info("info.getMainDomain() = {}", info.getMainDomain());
+//        }
     }
 
     public void findWebInfoByCriteria() {
-        Criteria criteria = new Criteria("ts")
-                .greaterThanEqual(Instant.now().getEpochSecond() - 3600L)
-                .and("ts")
-                .lessThan(Instant.now().getEpochSecond());
-        Query query = new CriteriaQuery(criteria);
-        SearchHits<WebInfo> search = elasticsearchOperations.search(query, WebInfo.class);
-        search.forEach(info -> {
-            WebInfo webInfo = info.getContent();
-            System.out.println("webInfo.getMainDomain() = " + webInfo.getMainDomain());
-        });
+//        Criteria criteria = new Criteria("ts")
+//                .greaterThanEqual(Instant.now().getEpochSecond() - 3600L)
+//                .and("ts")
+//                .lessThan(Instant.now().getEpochSecond());
+//        Query query = new CriteriaQuery(criteria);
+//        SearchHits<WebInfo> search = elasticsearchOperations.search(query, WebInfo.class);
+//        search.forEach(info -> {
+//            WebInfo webInfo = info.getContent();
+//            System.out.println("webInfo.getMainDomain() = " + webInfo.getMainDomain());
+//        });
     }
 
     public void aggregateWebInfo() {
-        Criteria criteria = new Criteria("ts")
-                .greaterThanEqual(Instant.now().getEpochSecond() - 3600L)
-                .and("ts")
-                .lessThan(Instant.now().getEpochSecond());
-        Query query = new CriteriaQuery(criteria);
-        NativeQuery nativeQuery = NativeQuery.builder()
-                .withAggregation("sum_pt", Aggregation.of(
-                        a -> a.sum(sa -> sa.field("pt"))
-                ))
-                .withAggregation("avg_count", Aggregation.of(
-                        a -> a.avg(aa -> aa.field("count"))
-                ))
-                .withQuery(query)
-                .build();
-
-        SearchHits<WebInfo> search = elasticsearchOperations.search(nativeQuery, WebInfo.class);
-        search.forEach(info -> {
-            WebInfo webInfo = info.getContent();
-            System.out.println("webInfo.getMainDomain() = " + webInfo.getMainDomain());
-        });
+//        Criteria criteria = new Criteria("ts")
+//                .greaterThanEqual(Instant.now().getEpochSecond() - 3600L)
+//                .and("ts")
+//                .lessThan(Instant.now().getEpochSecond());
+//        Query query = new CriteriaQuery(criteria);
+//        NativeQuery nativeQuery = NativeQuery.builder()
+//                .withAggregation("sum_pt", Aggregation.of(
+//                        a -> a.sum(sa -> sa.field("pt"))
+//                ))
+//                .withAggregation("avg_count", Aggregation.of(
+//                        a -> a.avg(aa -> aa.field("count"))
+//                ))
+//                .withQuery(query)
+//                .build();
+//
+//        SearchHits<WebInfo> search = elasticsearchOperations.search(nativeQuery, WebInfo.class);
+//        search.forEach(info -> {
+//            WebInfo webInfo = info.getContent();
+//            System.out.println("webInfo.getMainDomain() = " + webInfo.getMainDomain());
+//        });
     }
 
     public void aggregateByStringQuery() {
@@ -124,7 +127,13 @@ public class ElasticService {
 
     public void webClientRequest() {
 
-        Mono<String> value = WebClient.create().post()
+        WebClient client = WebClient.builder()
+                .baseUrl(url)
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+
+        Mono<String> value = client.post()
                 .uri(url)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)

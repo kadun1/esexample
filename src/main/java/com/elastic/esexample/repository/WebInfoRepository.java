@@ -6,11 +6,13 @@ import org.springframework.data.elasticsearch.repository.ElasticsearchRepository
 
 import java.util.List;
 
-public interface WebInfoRepository extends ElasticsearchRepository<WebInfo, String> {
+public interface WebInfoRepository
+//        extends ElasticsearchRepository<WebInfo, String>
+        {
 
-    @Query("{\"range\" : {\"ts\" : {\"from\" : \"?0\", \"to\" : \"?1\"}}}")
-    List<WebInfo> findByTs(Long start, Long end);
-
-    @Query("{\"}")
-    WebInfo findGroup();
+//    @Query("{\"range\" : {\"ts\" : {\"from\" : \"?0\", \"to\" : \"?1\"}}}")
+//    List<WebInfo> findByTs(Long start, Long end);
+//
+//    @Query("{\"}")
+//    WebInfo findGroup();
 }

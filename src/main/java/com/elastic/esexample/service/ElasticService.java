@@ -50,8 +50,12 @@ public class ElasticService {
     private OkHttpClient okHttpClient = new OkHttpClient();
     private String auth = "admin" + ":" + "admin";
     private String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
-
     private final String url = "http://localhost:9200/_plugins/_sql";
+    final WebClient client = WebClient.builder()
+            .baseUrl(url)
+            .defaultHeader(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth)
+            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .build();
 
     private final String json = """
             {"query": "select sum(pt) from surffy_eum_web_info group by os"}
@@ -125,15 +129,9 @@ public class ElasticService {
         }
     }
 
-    public void webClientRequest() {
+    public Mono<String> webClientRequest() {
 
-        WebClient client = WebClient.builder()
-                .baseUrl(url)
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .build();
-
-        Mono<String> value = client.post()
+        return client.post()
                 .uri(url)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -141,11 +139,5 @@ public class ElasticService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .timeout(Duration.ofMillis(3000));
-
-        value.subscribe(v -> {
-            log.info("value = {}", v);
-        });
-
     }
-
 }

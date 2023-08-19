@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @RestController
@@ -16,13 +17,12 @@ public class ElasticController {
     private final ElasticService elasticService;
 
     @GetMapping("/get")
-    public String elasticGet() {
+    public Mono<String> elasticGet() {
         elasticService.findValue();
         elasticService.findWebInfoByQuery();
         elasticService.findWebInfoByCriteria();
         elasticService.aggregateWebInfo();
 //        elasticService.okHttpRequest();
-        elasticService.webClientRequest();
-        return "ok";
+        return elasticService.webClientRequest();
     }
 }

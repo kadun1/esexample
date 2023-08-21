@@ -63,8 +63,8 @@ public class ElasticService {
 
     public void findValue() {
 //        List<ElasticModel> model = elasticRepository.findByName("kadun");
-//        System.out.println("ID = " + model.get(0).getId());
-//        System.out.println("Name = " + model.get(0).getName());
+//        log.info("ID = {}", model.get(0).getId());
+//        log.info("Name = {}", model.get(0).getName());
     }
 
     public void findWebInfoByQuery() {
@@ -129,7 +129,7 @@ public class ElasticService {
         }
     }
 
-    public Mono<String> webClientRequest() {
+    public String webClientRequest() {
 
         return client.post()
                 .uri(url)
@@ -138,6 +138,7 @@ public class ElasticService {
                 .body(Mono.just(json), String.class)
                 .retrieve()
                 .bodyToMono(String.class)
-                .timeout(Duration.ofMillis(3000));
+                .blockOptional(Duration.ofMillis(3000))
+                .orElseThrow(() -> new RuntimeException("에러"));
     }
 }

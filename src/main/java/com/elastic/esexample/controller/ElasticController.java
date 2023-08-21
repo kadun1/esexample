@@ -17,7 +17,7 @@ public class ElasticController {
     private final ElasticService elasticService;
 
     @GetMapping("/get")
-    public Mono<String> elasticGet() {
+    public String elasticGet() {
         elasticService.findValue();
         elasticService.findWebInfoByQuery();
         elasticService.findWebInfoByCriteria();

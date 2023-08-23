@@ -22,6 +22,7 @@ import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.core.query.StringQuery;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -43,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class ElasticService {
 
-//    private final ElasticRepository elasticRepository;
+    //    private final ElasticRepository elasticRepository;
 //    private final WebInfoRepository webInfoRepository;
     private final ElasticsearchOperations elasticsearchOperations;
 
@@ -53,7 +54,6 @@ public class ElasticService {
     private final String url = "http://localhost:9200/_plugins/_sql";
     final WebClient client = WebClient.builder()
             .baseUrl(url)
-            .defaultHeader(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .build();
 
@@ -138,6 +138,7 @@ public class ElasticService {
                 .body(Mono.just(json), String.class)
                 .retrieve()
                 .bodyToMono(String.class)
+                .onErrorMap(error -> new RuntimeException("에러 = " + error.getMessage()))
                 .blockOptional(Duration.ofMillis(3000))
                 .orElseThrow(() -> new RuntimeException("에러"));
     }

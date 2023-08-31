@@ -114,6 +114,7 @@ public class ElasticService {
     public void aggregateByStringQuery() {
         Query query = new StringQuery("{}");
         SearchHits<WebInfo> search = elasticsearchOperations.search(query, WebInfo.class);
+        System.out.println("search = " + search);
     }
 
     public void okHttpRequest() {
@@ -139,7 +140,7 @@ public class ElasticService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .onErrorMap(error -> new RuntimeException("에러 = " + error.getMessage()))
-                .blockOptional(Duration.ofMillis(3000))
+                .blockOptional(Duration.ofSeconds(3))
                 .orElseThrow(() -> new RuntimeException("에러"));
     }
 }
